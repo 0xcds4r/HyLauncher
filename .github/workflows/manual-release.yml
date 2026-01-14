@@ -1,0 +1,77 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.2.0)'
+        required: true
+      notes:
+        description: 'Release notes'
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download latest Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: app-linux
+          path: dist/linux
+
+      - name: Download latest Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: app-windows
+          path: dist/windows
+
+      - name: Prepare release folder
+        run: |
+          mkdir release
+          # Linux
+          cp dist/linux/* release/
+          chmod +x release/app-linux
+          chmod +x release/update-helper
+          # Windows
+          cp dist/windows/* release/
+
+      - name: Generate version.json
+        run: |
+          VERSION="${{ inputs.version }}"
+          LINUX_SHA=$(sha256sum release/app-linux | cut -d ' ' -f1)
+          WINDOWS_SHA=$(sha256sum release/app-windows.exe | cut -d ' ' -f1)
+
+          cat <<EOF > release/version.json
+          {
+            "version": "$VERSION",
+            "linux": {
+              "amd64": {
+                "url": "https://github.com/${{ github.repository }}/releases/download/v$VERSION/app-linux",
+                "sha256": "$LINUX_SHA"
+              }
+            },
+            "windows": {
+              "amd64": {
+                "url": "https://github.com/${{ github.repository }}/releases/download/v$VERSION/app-windows.exe",
+                "sha256": "$WINDOWS_SHA"
+              }
+            }
+          }
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          body: ${{ inputs.notes }}
+          files: |
+            release/HyLauncher-linux-x64
+            release/HyLauncher-windows-x64.exe
+            release/update-helper
+            release/version.json

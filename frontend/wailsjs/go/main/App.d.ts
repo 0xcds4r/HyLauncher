@@ -4,3 +4,5 @@
 export function DownloadAndLaunch(arg1:string):Promise<void>;
 
 export function GetVersions():Promise<string|string>;
+
+export function Update():Promise<void>;

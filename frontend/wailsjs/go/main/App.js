@@ -9,3 +9,7 @@ export function DownloadAndLaunch(arg1) {
 export function GetVersions() {
   return window['go']['main']['App']['GetVersions']();
 }
+
+export function Update() {
+  return window['go']['main']['App']['Update']();
+}
