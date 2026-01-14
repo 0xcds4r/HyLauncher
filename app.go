@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,6 +62,10 @@ func (a *App) progressCallback(stage string, progress float64, message string, c
 }
 
 func (a *App) DownloadAndLaunch(playerName string) error {
+	if len(playerName) > 16 {
+		return errors.New("Слишком длинный ник")
+	}
+
 	// JRE Download
 	a.emitProgress(ProgressUpdate{
 		Stage:    "jre",

@@ -18,7 +18,7 @@ interface ProgressUpdate {
 
 const App: React.FC = () => {
   // Global username state
-  const [username, setUsername] = useState("HyLauncher-Player001");
+  const [username, setUsername] = useState("HyLauncher");
   const [isEditing, setIsEditing] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState("");
@@ -51,6 +51,10 @@ const App: React.FC = () => {
 
   const handlePlay = async () => {
     if (!username || !username.trim()) {
+      return;
+    }
+
+    if (username.length > 16) {
       return;
     }
 
