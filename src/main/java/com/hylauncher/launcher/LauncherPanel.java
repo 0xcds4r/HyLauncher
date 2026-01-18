@@ -30,6 +30,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.hylauncher.version.GameVersion;
+import com.hylauncher.version.VersionManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -48,6 +50,7 @@ public class LauncherPanel extends JPanel {
     private JLabel progressPercentLabel;
     private JLabel speedLabel;
     private BufferedImage backgroundImage;
+    private JButton folderButton;
 
     private double currentProgress = 0;
     private String currentMessage = "Ready to play";
@@ -55,9 +58,13 @@ public class LauncherPanel extends JPanel {
     private static final Path USERNAME_FILE =
             Environment.getDefaultAppDir().resolve("username.txt");
 
+    private VersionManager versionManager;
+    private GameVersion selectedVersion;
+
     public LauncherPanel(JFrame parent) {
         this.parent = parent;
-        setLayout(new BorderLayout());  // Main layout
+        this.versionManager = new VersionManager();
+        setLayout(new BorderLayout());
         setOpaque(false);
 
         loadBackgroundImage();
@@ -84,7 +91,7 @@ public class LauncherPanel extends JPanel {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Не удалось загрузить имя пользователя: " + e.getMessage());
+            System.err.println("Failed to load username: " + e.getMessage());
         }
 
         usernameField.setText("");
@@ -243,7 +250,7 @@ public class LauncherPanel extends JPanel {
             Files.createDirectories(USERNAME_FILE.getParent());
             Files.writeString(USERNAME_FILE, name, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            System.err.println("Не удалось сохранить имя: " + e.getMessage());
+            System.err.println("Failed to save username: " + e.getMessage());
         }
     }
 
@@ -270,8 +277,8 @@ public class LauncherPanel extends JPanel {
 
         try {
             Document doc = Jsoup.connect("https://hytale.com/news")
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36")
-                    .timeout(20000)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .timeout(5000)
                     .get();
 
             Elements wrappers = doc.select(".postWrapper");
@@ -282,7 +289,7 @@ public class LauncherPanel extends JPanel {
                 Element postLink = wrapper.selectFirst("a.post");
                 if (postLink == null) continue;
 
-                String title = getSafeText(wrapper, "h4.post__details__heading", "Без заголовка");
+                String title = getSafeText(wrapper, "h4.post__details__heading", "No Title");
 
                 Element bodyEl = wrapper.selectFirst("span.post__details__body");
                 String rawDesc = "";
@@ -298,7 +305,7 @@ public class LauncherPanel extends JPanel {
 
                 String meta = getSafeText(wrapper, "span.post__details__meta", "");
 
-                String date = "Дата неизвестна";
+                String date = "Unknown date";
 
                 Pattern p = Pattern.compile(
                         "(January|February|March|April|May|June|July|August|September|October|November|December)\\s+" +
@@ -321,15 +328,15 @@ public class LauncherPanel extends JPanel {
                 news.add(new NewsItem(title, date, desc, url, imgUrl));
             }
 
-        } catch (IOException e) {
-            System.err.println("Ошибка загрузки новостей Hytale: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Hytale News Loading Error: " + e.getMessage());
         }
 
         if (news.isEmpty()) {
             news.add(new NewsItem(
-                    "Новости пока недоступны",
+                    "News unavailable",
                     LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                    "Не удалось загрузить свежие посты. Проверьте интернет.",
+                    "Failed to load news. You may not have an internet connection.",
                     "https://hytale.com/news",
                     ""
             ));
@@ -352,64 +359,55 @@ public class LauncherPanel extends JPanel {
                 .replace("'", "&#39;");
     }
 
-    private JPanel createNewsSection() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setOpaque(false);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(255, 168, 69, 0), 1, false),
+    private JPanel createNewsCard(NewsItem item) {
+        JPanel newsCard = new JPanel(new BorderLayout(16, 0));
+        newsCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 168, 69, 60), 1, false),
                 BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
+        newsCard.setBackground(new Color(9, 9, 9, 140));
+        newsCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
 
-        List<NewsItem> newsItems = fetchHytaleNews();
+        int textWidth = 420;
 
-        for (NewsItem item : newsItems) {
-            JPanel newsCard = new JPanel(new BorderLayout(16, 0));
-            newsCard.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(255, 168, 69, 60), 1, false),
-                    BorderFactory.createEmptyBorder(12, 12, 12, 12)
-            ));
-            newsCard.setBackground(new Color(9, 9, 9, 140));
-            newsCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
+        String htmlText =
+                "<html>" +
+                        "<table width='" + textWidth + "' cellpadding='0' cellspacing='0'>" +
+                        "<tr><td>" +
+                        "<b style='color:#ffffff; font-size:15px;'>" + escapeHtml(item.title) + "</b><br>" +
+                        "<small style='color:#bbbbbb; font-size:12px;'>" + item.date + "</small><br><br>" +
+                        "<span style='color:#dddddd; font-size:13px;'>" +
+                        escapeHtml(item.description) +
+                        "</span>" +
+                        "</td></tr>" +
+                        "</table>" +
+                        "</html>";
 
-            int textWidth = 420;
+        JLabel newsLabel = new JLabel(htmlText);
+        newsLabel.setVerticalAlignment(SwingConstants.TOP);
 
-            String htmlText =
-                    "<html>" +
-                            "<table width='" + textWidth + "' cellpadding='0' cellspacing='0'>" +
-                            "<tr><td>" +
-                            "<b style='color:#ffffff; font-size:15px;'>" + escapeHtml(item.title) + "</b><br>" +
-                            "<small style='color:#bbbbbb; font-size:12px;'>" + item.date + "</small><br><br>" +
-                            "<span style='color:#dddddd; font-size:13px;'>" +
-                            escapeHtml(item.description) +
-                            "</span>" +
-                            "</td></tr>" +
-                            "</table>" +
-                            "</html>";
-
-            JLabel newsLabel = new JLabel(htmlText);
-            newsLabel.setVerticalAlignment(SwingConstants.TOP);
-
-            newsCard.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            newsCard.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (!item.url.isEmpty()) {
-                        try {
-                            Desktop.getDesktop().browse(new URI(item.url));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+        newsCard.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        newsCard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!item.url.isEmpty()) {
+                    try {
+                        Desktop.getDesktop().browse(new URI(item.url));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
                 }
-            });
+            }
+        });
 
-            JPanel imgPanel = new JPanel();
-            imgPanel.setBackground(new Color(9, 9, 9, 0));
-//            imgPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 168, 69, 30)));
+        JPanel imgPanel = new JPanel();
+        imgPanel.setBackground(new Color(9, 9, 9, 0));
 
-            if (!item.imageUrl.isEmpty()) {
-                try {
+        if (!item.imageUrl.isEmpty())
+        {
+            SwingWorker<ImageIcon, Void> imgWorker = new SwingWorker<>() {
+                @Override
+                protected ImageIcon doInBackground() throws Exception {
                     BufferedImage original = ImageIO.read(new URL(item.imageUrl));
 
                     int targetWidth = 160;
@@ -428,43 +426,197 @@ public class LauncherPanel extends JPanel {
                     }
 
                     Image scaled = original.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-                    ImageIcon icon = new ImageIcon(scaled);
-
-                    JLabel imgLabel = new JLabel(icon);
-                    imgLabel.setPreferredSize(new Dimension(targetWidth, targetHeight));
-                    imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                    imgLabel.setVerticalAlignment(SwingConstants.CENTER);
-                    imgPanel.setLayout(new BorderLayout());
-                    imgPanel.add(imgLabel, BorderLayout.CENTER);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    JLabel placeholder = new JLabel("Hytale News", SwingConstants.CENTER);
-                    placeholder.setForeground(new Color(255, 168, 69, 100));
-                    imgPanel.add(placeholder);
+                    return new ImageIcon(scaled);
                 }
-            }
-            else
-            {
-                JLabel placeholder = new JLabel("Hytale News", SwingConstants.CENTER);
-                placeholder.setForeground(new Color(255, 168, 69, 100));
-                imgPanel.add(placeholder);
-            }
 
-            newsCard.add(newsLabel, BorderLayout.CENTER);
-            newsCard.add(imgPanel, BorderLayout.EAST);
+                @Override
+                protected void done() {
+                    try {
+                        ImageIcon icon = get();
+                        JLabel imgLabel = new JLabel(icon);
+                        imgLabel.setPreferredSize(new Dimension(160, 90));
+                        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                        imgLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-            panel.add(newsCard);
-            panel.add(Box.createVerticalStrut(16));
+                        imgPanel.removeAll();
+                        imgPanel.setLayout(new BorderLayout());
+                        imgPanel.add(imgLabel, BorderLayout.CENTER);
+                        imgPanel.revalidate();
+                        imgPanel.repaint();
+                    } catch (Exception e) {
+                        JLabel placeholder = new JLabel("Hytale News", SwingConstants.CENTER);
+                        placeholder.setForeground(new Color(255, 168, 69, 100));
+                        imgPanel.add(placeholder);
+                    }
+                }
+            };
+            imgWorker.execute();
+
+            JLabel placeholder = new JLabel("...", SwingConstants.CENTER);
+            placeholder.setForeground(new Color(255, 168, 69, 60));
+            imgPanel.add(placeholder);
+        } else {
+            JLabel placeholder = new JLabel("Hytale News", SwingConstants.CENTER);
+            placeholder.setForeground(new Color(255, 168, 69, 100));
+            imgPanel.add(placeholder);
         }
 
+        newsCard.add(newsLabel, BorderLayout.CENTER);
+        newsCard.add(imgPanel, BorderLayout.EAST);
+
+        return newsCard;
+    }
+
+    private JPanel createNewsSection() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 168, 69, 0), 1, false),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel loadingLabel = new JLabel("Loading news...", SwingConstants.CENTER);
+        loadingLabel.setForeground(Color.LIGHT_GRAY);
+        loadingLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        panel.add(loadingLabel);
+
+        SwingWorker<List<NewsItem>, Void> newsWorker = new SwingWorker<>() {
+            @Override
+            protected List<NewsItem> doInBackground() {
+                return fetchHytaleNews();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<NewsItem> newsItems = get();
+                    panel.removeAll();
+
+                    for (NewsItem item : newsItems) {
+                        JPanel newsCard = createNewsCard(item);
+                        panel.add(newsCard);
+                        panel.add(Box.createVerticalStrut(16));
+                    }
+
+                    panel.revalidate();
+                    panel.repaint();
+                } catch (Exception e) {
+                    System.err.println("Error loading news: " + e.getMessage());
+                    panel.removeAll();
+
+                    JLabel errorLabel = new JLabel("Error loading news", SwingConstants.CENTER);
+                    errorLabel.setForeground(Color.GRAY);
+                    panel.add(errorLabel);
+
+                    panel.revalidate();
+                    panel.repaint();
+                }
+            }
+        };
+
+        newsWorker.execute();
         return panel;
     }
 
-    private JPanel createBottomControls() {
+    private void openGameFolder() {
+        try {
+            Path gameFolder;
+
+            if (selectedVersion != null)
+            {
+                gameFolder = versionManager.getVersionDirectory(selectedVersion.getPatchNumber());
+            }
+            else
+            {
+                gameFolder = Environment.getDefaultAppDir()
+                        .resolve("release").resolve("package").resolve("game");
+
+                Path latestFolder = gameFolder.resolve("latest");
+                if (Files.exists(latestFolder)) {
+                    gameFolder = latestFolder;
+                }
+            }
+
+            Files.createDirectories(gameFolder);
+
+            if (Desktop.isDesktopSupported())
+            {
+                Desktop.getDesktop().open(gameFolder.toFile());
+            }
+            else
+            {
+                String os = Environment.getOS();
+                ProcessBuilder pb;
+
+                switch (os)
+                {
+                    case "windows" -> pb = new ProcessBuilder("explorer", gameFolder.toString());
+                    case "darwin" -> pb = new ProcessBuilder("open", gameFolder.toString());
+                    case "linux" -> pb = new ProcessBuilder("xdg-open", gameFolder.toString());
+                    default -> {
+                        JOptionPane.showMessageDialog(this,
+                                "Game folder: " + gameFolder.toString(),
+                                "Game path",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                    }
+                }
+
+                pb.start();
+            }
+
+            System.out.println("Opened game folder: " + gameFolder);
+
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Failed to open folder: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private JPanel createBottomControls()
+    {
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
         bottom.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftPanel.setOpaque(false);
+
+        JButton versionButton = new JButton("Select version");
+        versionButton.setFont(new Font("Arial", Font.BOLD, 14));
+        versionButton.setForeground(Color.WHITE);
+        versionButton.setBackground(new Color(60, 60, 70));
+        versionButton.setPreferredSize(new Dimension(160, 90));
+        versionButton.setFocusPainted(false);
+        versionButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        versionButton.addActionListener(e -> openVersionSelector());
+
+        folderButton = new JButton("Folder");
+        folderButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        folderButton.setForeground(Color.WHITE);
+        folderButton.setBackground(new Color(60, 60, 70));
+        folderButton.setPreferredSize(new Dimension(90, 90));
+        folderButton.setFocusPainted(false);
+        folderButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        folderButton.setToolTipText("Open game folder");
+        folderButton.addActionListener(e -> openGameFolder());
+
+        folderButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                folderButton.setBackground(new Color(80, 80, 90));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                folderButton.setBackground(new Color(60, 60, 70));
+            }
+        });
 
         playButton = new JButton("PLAY");
         playButton.setFont(new Font("Arial", Font.BOLD, 36));
@@ -472,17 +624,63 @@ public class LauncherPanel extends JPanel {
         playButton.setBackground(new Color(255, 168, 69, 180));
         playButton.setPreferredSize(new Dimension(300, 90));
         playButton.setFocusPainted(false);
+        playButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         playButton.addActionListener(e -> handlePlay());
 
-        JPanel playWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        playWrapper.setOpaque(false);
-        playWrapper.add(playButton);
-        bottom.add(playWrapper, BorderLayout.CENTER);
+        leftPanel.add(versionButton);
+        leftPanel.add(folderButton);
+        leftPanel.add(playButton);
+
+        bottom.add(leftPanel, BorderLayout.WEST);
 
         JPanel progressPanel = createProgressSection();
         bottom.add(progressPanel, BorderLayout.EAST);
 
+        if (selectedVersion == null)
+        {
+            List<GameVersion> versions = versionManager.loadCachedVersions();
+
+            if (!versions.isEmpty())
+            {
+                selectedVersion = versions.get(0);
+                updateFolderButtonText();
+            }
+        }
+
         return bottom;
+    }
+
+    private void updateFolderButtonText() {
+        if (folderButton == null) return;
+
+        if (selectedVersion != null) {
+            folderButton.setText(String.format(
+                    "Patch %d",
+                    selectedVersion.getPatchNumber()
+            ));
+            folderButton.setToolTipText("Open game folder - " + selectedVersion.getName());
+        } else {
+            folderButton.setText("Folder");
+            folderButton.setToolTipText("Open game folder");
+        }
+    }
+
+    private void openVersionSelector()
+    {
+        VersionSelectorDialog dialog = new VersionSelectorDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                versionManager
+        );
+
+        dialog.setVisible(true);
+
+        GameVersion selected = dialog.getSelectedVersion();
+        if (selected != null) {
+            selectedVersion = selected;
+            playButton.setText("PLAY");
+            updateFolderButtonText();
+            System.out.println("Selected version: " + selected.getName());
+        }
     }
 
     private JButton createNavButton(String text) {
@@ -558,7 +756,20 @@ public class LauncherPanel extends JPanel {
             playerName = playerName.substring(0, 16);
             usernameField.setText(playerName);
             saveUsername();
-            JOptionPane.showMessageDialog(this, "Имя обрезано до 16 символов", "Внимание", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "username must be < 16 symbols",
+                    "WARNING!", JOptionPane.WARNING_MESSAGE);
+        }
+
+        if (selectedVersion == null) {
+            List<GameVersion> versions = versionManager.loadCachedVersions();
+            if (versions.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Press 'Select version' for select game version",
+                        "Version not selected",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            selectedVersion = versions.get(0);
         }
 
         isDownloading = true;
@@ -566,26 +777,29 @@ public class LauncherPanel extends JPanel {
         playButton.setEnabled(false);
 
         String finalPlayerName = playerName;
+        GameVersion versionToInstall = selectedVersion;
 
-        SwingWorker<Void, ProgressUpdate> worker = new SwingWorker<>() {
+        SwingWorker<Path, ProgressUpdate> worker = new SwingWorker<>() {
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Path doInBackground() throws Exception {
                 try {
                     publish(new ProgressUpdate("jre", 0, "Checking JRE...", "", "", 0, 0));
                     JREDownloader.downloadJRE(this::publish);
 
-                    publish(new ProgressUpdate("game", 0, "Checking game...", "", "", 0, 0));
+                    publish(new ProgressUpdate("game", 0, "Installing " +
+                            versionToInstall.getName() + "...", "", "", 0, 0));
 
-                    GameInstaller.installGame("release", "1.pwr", this::publish);
+                    Path gameDir = GameInstaller.installGameVersion(versionToInstall, this::publish);
+
+                    versionManager.markVersionInstalled(versionToInstall);
 
                     publish(new ProgressUpdate("launch", 100, "Launching game...", "", "", 0, 0));
-                    launchGame(finalPlayerName);
+                    return gameDir;
 
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw e;
                 }
-                return null;
             }
 
             @Override
@@ -598,7 +812,10 @@ public class LauncherPanel extends JPanel {
             @Override
             protected void done() {
                 try {
-                    get();
+                    Path gameDir = get();
+
+                    launchGameFromDirectory(gameDir, finalPlayerName);
+
                     playButton.setText("PLAY");
                     playButton.setEnabled(true);
                     isDownloading = false;
@@ -615,8 +832,8 @@ public class LauncherPanel extends JPanel {
                     isDownloading = false;
 
                     JOptionPane.showMessageDialog(LauncherPanel.this,
-                            "Ошибка при скачивании/установке:\n" + e.getMessage(),
-                            "Ошибка",
+                            "Error while loading/installing:\n" + e.getMessage(),
+                            "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -663,6 +880,54 @@ public class LauncherPanel extends JPanel {
         }
 
         throw new IOException("No executable found in Client directory");
+    }
+
+    private void launchGameFromDirectory(Path gameDir, String playerName) throws Exception {
+        if (playerName == null || playerName.trim().isEmpty()) {
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Enter username!",
+                        "Error while running",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            });
+            return;
+        }
+
+        Path clientDir = gameDir.resolve("Client");
+        String clientName = findClientExecutable(clientDir);
+        Path clientPath = clientDir.resolve(clientName);
+
+        if (!Files.exists(clientPath) || !Files.isExecutable(clientPath)) {
+            throw new Exception("Game client executable not found or not executable: " + clientPath);
+        }
+
+        Path userDataDir = Environment.getDefaultAppDir().resolve("UserData");
+        Files.createDirectories(userDataDir);
+
+        if (!Environment.getOS().equals("windows")) {
+            clientPath.toFile().setExecutable(true, false);
+        }
+
+        ProcessBuilder pb = new ProcessBuilder(
+                clientPath.toAbsolutePath().toString(),
+                "--app-dir", gameDir.toAbsolutePath().toString(),
+                "--user-dir", userDataDir.toAbsolutePath().toString(),
+                "--java-exec", JREDownloader.getJavaExec(),
+                "--auth-mode", "offline",
+                "--uuid", "1da855d2-6219-4d02-ad93-c4b160b073c3",
+                "--name", playerName
+        );
+
+        pb.directory(gameDir.toFile());
+        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+        System.out.println("Launching from: " + gameDir);
+        System.out.println("Command: " + pb.command());
+
+        Process process = pb.start();
     }
 
     private void launchGame(String playerName) throws Exception

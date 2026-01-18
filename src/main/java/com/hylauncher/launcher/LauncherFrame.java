@@ -8,8 +8,9 @@ public class LauncherFrame extends JFrame
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
 
-    public LauncherFrame() {
-        setTitle("HyLauncher");
+    public LauncherFrame()
+    {
+        setTitle("HyLauncher v1.2");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(WIDTH, HEIGHT);
         setResizable(false);

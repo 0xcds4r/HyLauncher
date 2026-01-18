@@ -19,7 +19,8 @@ public class Main {
             "hytaleclient"
     };
 
-    private static void killJavaProcesses() {
+    private static void killJavaProcesses()
+    {
         for (String keyword : PROCESS_KEYWORDS) {
             try {
                 String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
@@ -62,6 +63,4 @@ public class Main {
             frame.setVisible(true);
         });
     }
-
-
 }

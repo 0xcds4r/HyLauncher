@@ -11,26 +11,22 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.*;
 
-public class PWRDownloader {
-    public static Path downloadPWR(String version, String fileName,
-                                   ProgressCallback callback) throws Exception {
+public class PWRDownloader
+{
+    public static Path downloadPWRFromUrl(String url, String fileName,
+                                          ProgressCallback callback) throws Exception
+    {
         Path cacheDir = Environment.getDefaultAppDir().resolve("cache");
         Files.createDirectories(cacheDir);
-
-        String os = Environment.getOS();
-        String arch = Environment.getArch();
-
-        String url = String.format(
-                "https://game-patches.hytale.com/patches/%s/%s/%s/0/%s",
-                os, arch, version, fileName);
 
         Path dest = cacheDir.resolve(fileName);
         Path tempDest = Paths.get(dest.toString() + ".tmp");
 
         Files.deleteIfExists(tempDest);
 
-        if (Files.exists(dest)) {
-            System.out.println("PWR file already exists: " + dest);
+        if (Files.exists(dest))
+        {
+            System.out.println("PWR file already cached: " + dest);
             callback.onProgress(new ProgressUpdate("game", 40,
                     "PWR file cached", fileName, "", 0, 0));
             return dest;
@@ -45,8 +41,25 @@ public class PWRDownloader {
         return dest;
     }
 
+    public static Path downloadPWR(String version, String fileName,
+                                   ProgressCallback callback) throws Exception
+    {
+        Path cacheDir = Environment.getDefaultAppDir().resolve("cache");
+        Files.createDirectories(cacheDir);
+
+        String os = Environment.getOS();
+        String arch = Environment.getArch();
+
+        String url = String.format(
+                "https://game-patches.hytale.com/patches/%s/%s/%s/0/%s",
+                os, arch, version, fileName);
+
+        return downloadPWRFromUrl(url, fileName, callback);
+    }
+
     private static void downloadFile(String url, Path dest,
-                                     ProgressCallback callback) throws Exception {
+                                     ProgressCallback callback) throws Exception
+    {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -55,6 +68,10 @@ public class PWRDownloader {
 
         HttpResponse<InputStream> response = client.send(request,
                 HttpResponse.BodyHandlers.ofInputStream());
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Server returned HTTP " + response.statusCode());
+        }
 
         long total = response.headers().firstValueAsLong("Content-Length").orElse(-1);
         long downloaded = 0;
