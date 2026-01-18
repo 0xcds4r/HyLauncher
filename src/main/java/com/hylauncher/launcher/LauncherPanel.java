@@ -916,8 +916,10 @@ public class LauncherPanel extends JPanel {
                 "--user-dir", userDataDir.toAbsolutePath().toString(),
                 "--java-exec", JREDownloader.getJavaExec(),
                 "--auth-mode", "offline",
-                "--uuid", "1da855d2-6219-4d02-ad93-c4b160b073c3",
-                "--name", playerName
+                "--uuid", UUIDGen.generateUUID(playerName),
+                "--name", playerName,
+                "--identity-token", UUIDGen.generateIdentityToken(playerName),
+                "--session-token", UUIDGen.generateSessionToken()
         );
 
         pb.directory(gameDir.toFile());
