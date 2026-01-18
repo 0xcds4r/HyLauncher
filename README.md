@@ -1,4 +1,4 @@
-## HyLauncher (JAVA) by 0xcds4r
+## LingHy Launcher for Hytale by 0xcds4r
 
 v1.0:
 - Installing and launching the basic version of the game
@@ -11,8 +11,21 @@ v1.2:
 - News loop-loading bug-fix
 - Optimize code
 
+v1.4:
+- Now we is LingHy Launcher :)
+- Now is launcher main folder is '~/.hytale'
+- Updated background
+- Updated news section GUI
+- Update version selector GUI
+- Fixed news section scroll
+- Added UUID generator
+- Added folder selector for open (Game Files/UserData)
+- Optimize code
+
 ### Screenshots:
 
-![img.png](img.png)
+![1.png](preview/1.png)
 
-![img_1.png](img_1.png)
+![2.png](preview/2.png)
+
+![3.png](preview/3.png)

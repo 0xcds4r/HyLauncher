@@ -1,4 +1,4 @@
-package com.hylauncher.launcher;
+package com.linghy.launcher;
 
 import javax.swing.*;
 import java.awt.*;

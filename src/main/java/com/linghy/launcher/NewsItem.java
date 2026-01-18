@@ -1,6 +1,7 @@
-package com.hylauncher.launcher;
+package com.linghy.launcher;
 
-public class NewsItem {
+public class NewsItem
+{
     public String title;
     public String date;
     public String description;

@@ -1,16 +1,12 @@
-package com.hylauncher.butler;
+package com.linghy.butler;
 
-import com.hylauncher.env.Environment;
-import com.hylauncher.model.ProgressCallback;
-import com.hylauncher.model.ProgressUpdate;
+import com.linghy.env.Environment;
+import com.linghy.model.ProgressCallback;
+import com.linghy.model.ProgressUpdate;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.*;
 
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -120,7 +116,7 @@ public class ButlerInstaller {
     private static void downloadFile(String urlStr, Path dest, ProgressCallback callback) throws Exception {
         URL url = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestProperty("User-Agent", "HyLauncher/1.0");
+        conn.setRequestProperty("User-Agent", "Linghy/1.0");
         conn.setInstanceFollowRedirects(true);
 
         int responseCode = conn.getResponseCode();

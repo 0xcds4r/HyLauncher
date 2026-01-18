@@ -1,10 +1,10 @@
-package com.hylauncher.pwr;
+package com.linghy.pwr;
 
-import com.hylauncher.butler.ButlerInstaller;
-import com.hylauncher.env.Environment;
-import com.hylauncher.model.ProgressCallback;
-import com.hylauncher.model.ProgressUpdate;
-import com.hylauncher.version.GameVersion;
+import com.linghy.butler.ButlerInstaller;
+import com.linghy.env.Environment;
+import com.linghy.model.ProgressCallback;
+import com.linghy.model.ProgressUpdate;
+import com.linghy.version.GameVersion;
 
 import java.io.IOException;
 import java.nio.file.*;

@@ -1,9 +1,6 @@
-package com.hylauncher.launcher;
+package com.linghy.launcher;
 
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.spec.EdECPrivateKeySpec;
-import java.security.spec.NamedParameterSpec;
 import java.util.Base64;
 import java.util.UUID;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;

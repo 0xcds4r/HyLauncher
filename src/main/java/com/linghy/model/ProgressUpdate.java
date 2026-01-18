@@ -1,4 +1,4 @@
-package com.hylauncher.model;
+package com.linghy.model;
 
 public class ProgressUpdate {
     private final String stage;

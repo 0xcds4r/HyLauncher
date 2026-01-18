@@ -1,10 +1,10 @@
-package com.hylauncher.java;
+package com.linghy.java;
 
 import com.google.gson.Gson;
-import com.hylauncher.env.Environment;
-import com.hylauncher.model.JREManifest;
-import com.hylauncher.model.ProgressCallback;
-import com.hylauncher.model.ProgressUpdate;
+import com.linghy.env.Environment;
+import com.linghy.model.JREManifest;
+import com.linghy.model.ProgressCallback;
+import com.linghy.model.ProgressUpdate;
 
 import java.io.*;
 import java.net.URI;

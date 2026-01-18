@@ -1,4 +1,4 @@
-package com.hylauncher.version;
+package com.linghy.version;
 
 public class GameVersion
 {

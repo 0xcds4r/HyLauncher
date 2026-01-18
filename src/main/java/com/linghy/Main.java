@@ -1,20 +1,19 @@
-package com.hylauncher;
+package com.linghy;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.hylauncher.env.Cleanup;
-import com.hylauncher.env.Environment;
-import com.hylauncher.launcher.LauncherFrame;
+import com.linghy.env.Cleanup;
+import com.linghy.env.Environment;
+import com.linghy.launcher.LauncherFrame;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.file.Paths;
 import java.util.Locale;
 
 public class Main {
 
     private static final String[] PROCESS_KEYWORDS = {
-            "hylauncher",
+            "linghy",
             "hytale",
             "hytaleclient"
     };

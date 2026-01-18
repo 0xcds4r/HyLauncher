@@ -1,4 +1,4 @@
-package com.hylauncher.model;
+package com.linghy.model;
 
 @FunctionalInterface
 public interface ProgressCallback {

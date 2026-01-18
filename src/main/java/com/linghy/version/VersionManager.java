@@ -1,8 +1,8 @@
-package com.hylauncher.version;
+package com.linghy.version;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.hylauncher.env.Environment;
+import com.linghy.env.Environment;
 
 import java.io.IOException;
 import java.net.URI;
@@ -11,11 +11,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class VersionManager
 {

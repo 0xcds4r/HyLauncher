@@ -1,4 +1,4 @@
-package com.hylauncher.launcher;
+package com.linghy.launcher;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,7 +10,7 @@ public class LauncherFrame extends JFrame
 
     public LauncherFrame()
     {
-        setTitle("HyLauncher v1.2");
+        setTitle("LingHy v1.4");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(WIDTH, HEIGHT);
         setResizable(false);

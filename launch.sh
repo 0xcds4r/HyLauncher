@@ -12,12 +12,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-JAR_FILE=$(find target -maxdepth 1 -name "hylauncher-1.2.jar" | head -n 1)
+JAR_FILE=$(find target -maxdepth 1 -name "linghy-1.4.jar" | head -n 1)
 
 if [ -z "$JAR_FILE" ]; then
     echo -e "${RED}Jar-файл не найден!${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}Запуск hylauncher...${NC}"
+echo -e "${GREEN}Запуск linghy launcher...${NC}"
 java -jar "$JAR_FILE"

@@ -1,4 +1,4 @@
-package com.hylauncher.java;
+package com.linghy.java;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;

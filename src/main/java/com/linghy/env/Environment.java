@@ -1,12 +1,13 @@
-package com.hylauncher.env;
+package com.linghy.env;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Environment {
-    private static final String APP_NAME = "HyLauncher";
+public class Environment
+{
+    private static final String APP_NAME = "hytale";
 
     public static String getOS() {
         String os = System.getProperty("os.name").toLowerCase();
