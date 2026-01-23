@@ -44,6 +44,10 @@ We strongly recommend clearing or renaming the old '~/.hytale/' folder to preven
 
 Before clearing, make a backup of your saves and mods.
 
+v1.6:
+
+Work in progress, check [Planning](https://github.com/0xcds4r/LingHy-Launcher/wiki/Planning)
+
 ### Screenshots:
 
 ![01.png](preview/01.png)
