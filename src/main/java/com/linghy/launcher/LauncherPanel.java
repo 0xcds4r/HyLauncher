@@ -3,6 +3,7 @@ package com.linghy.launcher;
 import com.linghy.env.Environment;
 import com.linghy.java.JREDownloader;
 import com.linghy.model.ProgressUpdate;
+import com.linghy.mods.ModManagerDialog;
 import com.linghy.pwr.GameInstaller;
 
 import javax.imageio.ImageIO;
@@ -911,6 +912,17 @@ public class LauncherPanel extends JPanel
         playButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         playButton.addActionListener(e -> handlePlay());
 
+        JButton modsButton = new JButton("Mods");
+        modsButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        modsButton.setForeground(Color.WHITE);
+        modsButton.setBackground(new Color(80, 60, 120));
+        modsButton.setPreferredSize(new Dimension(140, 90));
+        modsButton.setFocusPainted(false);
+        modsButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        modsButton.addActionListener(e -> openModManager());
+
+        leftPanel.add(modsButton);
+
         leftPanel.add(versionButton);
         leftPanel.add(folderButton);
         leftPanel.add(playButton);
@@ -959,6 +971,22 @@ public class LauncherPanel extends JPanel
         versionWorker.execute();
 
         return bottom;
+    }
+
+    private void openModManager()
+    {
+        if (selectedVersion == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Select game version",
+                    "Game version is not selected",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        ModManagerDialog dialog = new ModManagerDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this)
+        );
+        dialog.setVisible(true);
     }
 
     private void updateFolderButtonText()
