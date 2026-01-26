@@ -58,4 +58,17 @@ public class Environment
             Files.createDirectories(path);
         }
     }
+
+    public static String getVersion()
+    {
+        Package pkg = Environment.class.getPackage();
+        if (pkg != null) {
+            String version = pkg.getImplementationVersion();
+            if (version != null) {
+                return version;
+            }
+        }
+        return "dev";
+    }
+
 }

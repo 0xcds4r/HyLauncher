@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.linghy.env.Cleanup;
 import com.linghy.env.Environment;
 import com.linghy.launcher.LauncherFrame;
+import com.linghy.mods.curseforge.CurseForgeAPI;
+import com.linghy.utils.AffinityMgr;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -39,6 +41,7 @@ public class Main
     public static void main(String[] args)
     {
         AffinityMgr.init();
+        CurseForgeAPI.init();
 
         try {
             UIManager.setLookAndFeel(new FlatDarkLaf());

@@ -1,5 +1,7 @@
 package com.linghy.launcher;
 
+import com.linghy.env.Environment;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -7,7 +9,7 @@ public class LauncherFrame extends JFrame
 {
     public LauncherFrame()
     {
-        setTitle("LingHy v1.5");
+        setTitle("LingHy v" + Environment.getVersion());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();

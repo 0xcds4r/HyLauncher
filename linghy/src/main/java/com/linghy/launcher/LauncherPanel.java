@@ -328,7 +328,7 @@ public class LauncherPanel extends JPanel
 
         panel.add(Box.createVerticalStrut(8));
 
-        JLabel infoLine1 = new JLabel("LingHy Launcher (v1.5)");
+        JLabel infoLine1 = new JLabel("LingHy Launcher (v" + Environment.getVersion() +")");
         infoLine1.setForeground(new Color(120, 120, 130));
         infoLine1.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         infoLine1.setAlignmentX(Component.CENTER_ALIGNMENT);

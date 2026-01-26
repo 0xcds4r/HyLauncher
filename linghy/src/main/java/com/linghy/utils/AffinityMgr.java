@@ -1,4 +1,4 @@
-package com.linghy;
+package com.linghy.utils;
 
 import com.sun.jna.*;
 import com.sun.jna.platform.win32.BaseTSD;

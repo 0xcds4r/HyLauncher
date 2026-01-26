@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="hylauncher" />
+        <module name="linghy" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="linghy-native" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
