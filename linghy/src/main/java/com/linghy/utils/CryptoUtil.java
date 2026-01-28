@@ -2,6 +2,7 @@ package com.linghy.utils;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
@@ -10,31 +11,36 @@ import java.util.*;
 
 public final class CryptoUtil
 {
-    private static final String ENV_FILE = ".env";
-    private static final String SECRET_KEY = "CF_SECRET";
     private static final int ITERATIONS = 65536;
     private static final int KEY_LEN = 256;
 
-    private static String loadSecret() throws Exception
+    private static String loadPublicKey()
     {
-        List<String> lines = Files.readAllLines(Path.of(ENV_FILE), StandardCharsets.UTF_8);
-        for (String l : lines)
+        Properties props = new Properties();
+
+        try (InputStream is = CryptoUtil.class.getClassLoader().getResourceAsStream("linghy.properties"))
         {
-            l = l.trim();
-            if (l.isEmpty() || l.startsWith("#")) continue;
-            int eq = l.indexOf('=');
-            if (eq == -1) continue;
-            String k = l.substring(0, eq).trim();
-            if (k.equals(SECRET_KEY))
-                return l.substring(eq + 1).trim();
+            if (is != null)
+            {
+                props.load(is);
+                String b64 = props.getProperty("public.key.b64", "").trim();
+                if (b64.isEmpty()) return "";
+
+                byte[] decoded = Base64.getDecoder().decode(b64);
+                return new String(decoded, StandardCharsets.UTF_8);
+            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
-        throw new IllegalStateException("CF_SECRET not found in .env");
+
+        return "";
     }
 
     private static SecretKey deriveKey(byte[] salt) throws Exception
     {
-        String secret = loadSecret();
-        PBEKeySpec spec = new PBEKeySpec(secret.toCharArray(), salt, ITERATIONS, KEY_LEN);
+        String publicKey = loadPublicKey();
+        PBEKeySpec spec = new PBEKeySpec(publicKey.toCharArray(), salt, ITERATIONS, KEY_LEN);
         SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         return new SecretKeySpec(f.generateSecret(spec).getEncoded(), "AES");
     }

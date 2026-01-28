@@ -17,7 +17,8 @@ public class ModManifest
     public String Main;
     public boolean IncludesAssetPack;
 
-    public static class Author {
+    public static class Author
+    {
         public String Name;
         public String Website;
     }

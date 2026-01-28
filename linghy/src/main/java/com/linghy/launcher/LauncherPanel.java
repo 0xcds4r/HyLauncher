@@ -458,11 +458,12 @@ public class LauncherPanel extends JPanel
     private String escapeHtml(String input)
     {
         if (input == null) return "";
-        return input.replace("&", "&amp;")
+        return input.replace("&amp;", "")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
-                .replace("'", "&#39;");
+                .replace("'", "&#39;")
+                .replace("-", "&nbsp;");
     }
 
     private JPanel createNewsCard(NewsItem item)

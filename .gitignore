@@ -22,3 +22,5 @@ Thumbs.db
 
 .env
 .github/workflows/
+
+launch-release.sh

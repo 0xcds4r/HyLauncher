@@ -1,5 +1,7 @@
 package com.linghy.env;
 
+import com.linghy.Main;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,14 +63,22 @@ public class Environment
 
     public static String getVersion()
     {
-        Package pkg = Environment.class.getPackage();
-        if (pkg != null) {
-            String version = pkg.getImplementationVersion();
-            if (version != null) {
-                return version;
+        String version = "unknown";
+
+        try {
+            Package pkg = Main.class.getPackage();
+            if (pkg != null) {
+                String implVersion = pkg.getImplementationVersion();
+                String implBuildTime = pkg.getImplementationVendor();
+                if (implVersion != null && !implVersion.isBlank() && implBuildTime != null && !implBuildTime.isBlank()) {
+                    return implVersion.trim() + " build " + implBuildTime.hashCode();
+                }
             }
+        } catch (Exception ignore) {
+
         }
-        return "dev";
+
+        return version;
     }
 
 }

@@ -15,12 +15,37 @@ import java.util.List;
 
 public class CurseForgeAPI
 {
-    public static final int GAME_ID = 70216;
+    public static final int GAME_ID = 70216; // hytale game id
     private static final Gson gson = new GsonBuilder().create();
+
+    public enum SortField
+    {
+        FEATURED(1),
+        POPULARITY(2),
+        LAST_UPDATED(3),
+        NAME(4),
+        AUTHOR(5),
+        TOTAL_DOWNLOADS(6);
+
+        private final int value;
+        SortField(int value) { this.value = value; }
+        public int getValue() { return value; }
+    }
+
+    public enum SortOrder
+    {
+        ASCENDING("asc"),
+        DESCENDING("desc");
+
+        private final String value;
+        SortOrder(String value) { this.value = value; }
+        public String getValue() { return value; }
+    }
 
     public static String getApiKey()
     {
-        try {
+        try
+        {
             String url = "https://raw.githubusercontent.com/0xcds4r/LingHy-Launcher/main/keys/cf.key";
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -29,47 +54,50 @@ public class CurseForgeAPI
                     .build();
 
             HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            if (response.statusCode() != 200) {
+
+            if (response.statusCode() != 200)
+            {
                 System.err.println("Failed to fetch API key, status: " + response.statusCode());
                 return "";
             }
 
             return CryptoUtil.readEncryptedBytes(response.body());
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             System.err.println("Error fetching API key: " + e.getMessage());
             e.printStackTrace();
         }
+
         return "";
     }
 
     public static void init()
     {
-        // test
-        try {
-            List<Mod> mods = searchMods("");
-            System.out.println("Total founded mods: " + mods.size());
-            if (!mods.isEmpty()) {
-                Mod m = mods.get(0);
-                System.out.println("First founded mod: " + m.name + " (ID: " + m.id + ")");
-                System.out.println("Authors: " + m.authors.stream().map(a -> a.name).toList());
-                System.out.println("Category: " + m.categories.stream().map(c -> c.name).toList());
 
-                ModFile latest = getLatestFile(m.id);
-                if (latest != null) {
-                    System.out.println("Last file: " + latest.fileName + ", URL: " + latest.downloadUrl);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static List<Mod> searchMods(String query) throws Exception
     {
-        String url = "mods/search?gameId=" + GAME_ID + "&searchFilter=" +
-                URLEncoder.encode(query, StandardCharsets.UTF_8);
+        return searchMods(query, SortField.POPULARITY, SortOrder.DESCENDING);
+    }
+
+    public static List<Mod> searchMods(String query, SortField sortField, SortOrder sortOrder) throws Exception
+    {
+        StringBuilder urlBuilder = new StringBuilder("mods/search?gameId=" + GAME_ID);
+
+        if (query != null && !query.trim().isEmpty()) {
+            urlBuilder.append("&searchFilter=").append(URLEncoder.encode(query, StandardCharsets.UTF_8));
+        }
+
+        urlBuilder.append("&sortField=").append(sortField.getValue());
+        urlBuilder.append("&sortOrder=").append(sortOrder.getValue());
+        urlBuilder.append("&pageSize=50");
+
+        String url = urlBuilder.toString();
         String resp = CFHttp.get(url).body();
         ApiResponse<Mod[]> apiResp = gson.fromJson(resp, ApiResponseModArray.class);
+
         return List.of(apiResp.data);
     }
 
@@ -114,7 +142,8 @@ public class CurseForgeAPI
     private static class ApiResponseModArray extends ApiResponse<Mod[]> {}
     private static class ApiResponseModFileArray extends ApiResponse<ModFile[]> {}
 
-    public static class Mod {
+    public static class Mod
+    {
         public int id;
         public String name;
         public String slug;
@@ -123,21 +152,52 @@ public class CurseForgeAPI
         public List<Category> categories;
         @SerializedName("mainFileId")
         public int mainFileId;
+        @SerializedName("downloadCount")
+        public long downloadCount;
+        @SerializedName("dateCreated")
+        public String dateCreated;
+        @SerializedName("dateModified")
+        public String dateModified;
+        public Logo logo;
+        public List<Screenshot> screenshots;
     }
 
-    public static class Author {
+    public static class Logo
+    {
+        public int id;
+        public int modId;
+        public String title;
+        public String description;
+        public String thumbnailUrl;
+        public String url;
+    }
+
+    public static class Screenshot
+    {
+        public int id;
+        public int modId;
+        public String title;
+        public String description;
+        public String thumbnailUrl;
+        public String url;
+    }
+
+    public static class Author
+    {
         public int id;
         public String name;
         public String url;
     }
 
-    public static class Category {
+    public static class Category
+    {
         public int id;
         public String name;
         public String url;
     }
 
-    public static class ModFile {
+    public static class ModFile
+    {
         public int id;
         public String fileName;
         public String displayName;
