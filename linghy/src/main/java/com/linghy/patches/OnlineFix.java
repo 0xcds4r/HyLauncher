@@ -12,8 +12,8 @@ public class OnlineFix
      *   But so far there seem to be no problems, and the pattern doesn't seem to be changing.
      * */
 
-    private static final long SEARCH_START = 0x80DB40L;
-    private static final long SEARCH_END = 0x80DB90L;
+    private static final long SEARCH_START = 0x800000L;
+    private static final long SEARCH_END = 0x80DB80L + 0x300L;
 
     private static final byte[] SEARCH_PATTERN = hexToBytes(
             "55 53 48 83 ec 38 48 8d 6c 24 40 33 c0 48 89 45"
